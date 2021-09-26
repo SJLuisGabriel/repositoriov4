@@ -1,7 +1,6 @@
 package com.example.topicos_v3.views;
 
-import javafx.event.Event;
-import javafx.event.EventHandler;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -9,16 +8,16 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-
 import java.io.File;
-import java.util.Timer;
-import java.util.TimerTask;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.Timer;
 
 public class Loteria extends Stage{
 
@@ -42,7 +41,10 @@ public class Loteria extends Stage{
     private GridPane gdpPlantilla;
     private Label lblCarta;
     private File file, file2;
-    int a = 0, b = 1, c = 0,contador = 0, Ncarta = 9;
+    private Timer timer;
+    int a = 0, b = 1, c = 0, d = 0, Ncarta = 9, numeroAle, numeroAle2, contadorMazoIgual = 0, NumeroDeCartas[] = new int[45];
+    int [] aleatorios = new int [45];
+    boolean empezar = false, termino = false;
 
     public Loteria(){
         CrearUI();
@@ -52,6 +54,7 @@ public class Loteria extends Stage{
     }
 
     private void CrearUI(){
+
         vBox = new VBox();
         hBox1 = new HBox();
         vBox2 = new VBox();
@@ -62,28 +65,46 @@ public class Loteria extends Stage{
 
         btnSiguiente.setFont(Font.font("Cambria"));
         btnAtras.setFont(Font.font("Cambria"));
+        btnSeleccionar.setFont(Font.font("Cambria"));
 
         hBox1.getChildren().addAll(btnAtras,btnSiguiente);
         hBox1.setSpacing(10);
         hBox2 = new HBox();
         gdpPlantilla = new GridPane();
 
+        for (int i = 0; i < 3; i++){
+            for (int j = 0; j < 3; j++){
 
-        CambioDP(arBtnCartas);
+                arBtnCartas [j][i] = new Button();
+                arBtnCartas [j][i].setPrefSize(180,160);
+                file = new File("src/main/java/com/example/topicos_v3/image/"+arImagenes[a]);
+                imgCarta = new Image(file.toURI().toString());
+                ImageView view = new ImageView(imgCarta);
+                view.setFitHeight(130);
+                view.setFitWidth(110);
+                view.setPreserveRatio(true);
+                arBtnCartas [j][i].setGraphic(view);
+                int numj = j, numi = i;
+                arBtnCartas [j][i].setOnAction(event -> {Comparar(numi,numj); Parar();});
+                gdpPlantilla.add(arBtnCartas[j][i],j,i);
+                a++;
+            }
+        }
+
+        for (int i = 0; i < 45; i++) {
+            NumeroDeCartas[i]=i;
+        }
 
         btnSiguiente.setOnAction(event -> {
             b++;
             if (b > 5) b = 1;
-            Remover();
-            CambioDP(arBtnCartas);
-            //Generar();
+            CambioDPl();
         });
 
         btnAtras.setOnAction(event -> {
             b--;
             if (b < 1) b = 5;
-            Remover();
-
+            CambioDPl();
         });
 
         lblCarta = new Label();
@@ -93,26 +114,25 @@ public class Loteria extends Stage{
         ImageView view = new ImageView(imgCarta);
 
         btnSeleccionar.setOnAction(event -> {
-            //btnSiguiente.setVisible(false);
-            //btnAtras.setVisible(false);
-            //btnSeleccionar.setVisible(false);
-            System.out.println(Ncarta);
+            btnSiguiente.setVisible(false);
+            btnAtras.setVisible(false);
+            btnSeleccionar.setVisible(false);
+            //System.out.println(Ncarta);
+            empezar = true;
+            numeroAle = (int) (Math.random() * ( 45  + 1 ));
+            numeroAle2 = (int) (Math.random() * ( numeroAle + 1 ));
 
-            Timer timer = new Timer();
-            TimerTask tarea = new TimerTask() {
-                @Override
+            if (d == 0){
 
-                public void run() {
-
-                }
-            };
-            CartaA(lblCarta,arImagenes);
-            timer.schedule(tarea,1000,1000);
-
+                CartaAleatorio();
+                d++;
+            }
+            //System.out.println("Ncarta " + Ncarta);
+            //System.out.println("numeroAle " + numeroAle);
+            //System.out.println("numeroAle2 " + numeroAle2);
+            TimerCarta();
+            //CambioCartaDorso();
         });
-
-
-        Butooo();
 
         view.setFitWidth(180);
         view.setFitHeight(200);
@@ -133,67 +153,106 @@ public class Loteria extends Stage{
         escena = new Scene(vBox,800,535);
     }
 
-    public void Butooo(){
+    public void TimerCarta (){
 
-        arBtnCartas[0][0].setOnAction(event -> {
-            file = new File("src/main/java/com/example/topicos_v3/image/"+arImagenes[Ncarta-9]);
-            System.out.println("numero de carta  " + Ncarta);
-            if (file.equals(file2)) {
-                System.out.println("Son iguales");
-                gdpPlantilla.getChildren().remove(arBtnCartas[0][0]);
-                GenerarDorso(0,0);
+        timer = new Timer(2000, new ActionListener(){
+
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                Platform.runLater(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            file2 = new File("src/main/java/com/example/topicos_v3/image/"+arImagenes[aleatorios[c]]);
+                            imgCarta = new Image(file2.toURI().toString());
+                            ImageView view2 = new ImageView(imgCarta);
+                            view2.setFitWidth(180);
+                            view2.setFitHeight(200);
+                            view2.setPreserveRatio(true);
+                            lblCarta.setGraphic(view2);
+                            c++;
+
+                            if (c == 45) {
+                                termino = true;
+                                Parar();
+                            }
+                        }
+                    }
+                );
             }
         });
+        timer.start();
 
-        arBtnCartas[1][0].setOnAction(event -> {
-            file = new File("src/main/java/com/example/topicos_v3/image/"+arImagenes[1]);
-            if (file.equals(file2)) {
-                System.out.println("Son iguales");
-                gdpPlantilla.getChildren().remove(arBtnCartas[1][0]);
-                for (int i = 0; i <= 1; i++){
-                    GenerarDorso(i,0);
+    }
+
+    public void Parar (){
+
+        if (termino) {
+            timer.stop();
+            System.out.println("Termino");
+        }
+    }
+
+    public void Comparar(int i, int j){
+        int quitar = 0;
+        if(empezar){
+            switch (i){
+                case 0:
+                    switch (j){
+                        case 0 -> quitar = 9;
+                        case 1 -> quitar = 8;
+                        case 2 -> quitar = 7;
+                    }
+                    break;
+                case 1:
+                    switch (j){
+                        case 0 -> quitar = 6;
+                        case 1 -> quitar = 5;
+                        case 2 -> quitar = 4;
+                    }
+                    break;
+                case 2:
+                    switch (j){
+                        case 0 -> quitar = 3;
+                        case 1 -> quitar = 2;
+                        case 2 -> quitar = 1;
+                    }
+                    break;
+            }
+
+            File fileC = new File("src/main/java/com/example/topicos_v3/image/"+arImagenes[Ncarta-quitar]);
+            arBtnCartas[j][i].setOnAction(event -> {
+                //System.out.println("numero de carta" + Ncarta);
+                //System.out.println(fileC);
+                //System.out.println(file2);
+
+                if (file2.equals(fileC)) {
+                    //System.out.println("Es igual");
+                    CambioDorso(i,j);
+                    contadorMazoIgual++;
+                    System.out.println(contadorMazoIgual);
+                    if (contadorMazoIgual == 9) {
+                        termino = true;
+                        Parar();
+                    }
                 }
-            }
-        });
+            });
+
+        }
     }
 
-    public void CartaA(Label lblCambio, String[] arImage){
+    public void CambioDorso (int i, int j){
 
-        System.out.println(c);
-        file2 = new File("src/main/java/com/example/topicos_v3/image/"+arImage[c]);
-        imgCarta = new Image(file2.toURI().toString());
-        ImageView view2 = new ImageView(imgCarta);
-        view2.setFitWidth(180);
-        view2.setFitHeight(200);
-        view2.setPreserveRatio(true);
-        lblCambio.setGraphic(view2);
-        lblCambio.setAlignment(Pos.CENTER);
-        c++;
-    }
-
-    public void GenerarDorso(int a1, int a2){
-
-        arBtnCartas [a1][a2] = new Button();
-        arBtnCartas [a1][a2].setPrefSize(180,160);
-        file = new File("src/main/java/com/example/topicos_v3/image/"+arImagenes[45]);
-        imgCarta = new Image(file.toURI().toString());
+        File fileDC = new File("src/main/java/com/example/topicos_v3/image/"+arImagenes[45]);
+        imgCarta = new Image(fileDC.toURI().toString());
         ImageView view = new ImageView(imgCarta);
         view.setFitHeight(130);
         view.setFitWidth(110);
         view.setPreserveRatio(true);
-        arBtnCartas[a1][a2].setGraphic(view);
-        gdpPlantilla.add(arBtnCartas[a1][a2],a2,a2);
+        arBtnCartas [j][i].setGraphic(view);
     }
 
-    public void Remover(){
-        for (int i = 0; i < 3; i++){
-            for (int j = 0; j < 3; j++){
-                gdpPlantilla.getChildren().remove(arBtnCartas[j][i]);
-            }
-        }
-    }
-
-    public void CambioDP(Button[][] arbtncartas, GridPane gdpplantilla ){
+    public void CambioDPl(){
         switch (b) {
             case 1 -> Ncarta = 0;
             case 2 -> Ncarta = 9;
@@ -204,17 +263,36 @@ public class Loteria extends Stage{
 
         for (int i = 0; i < 3; i++){
             for (int j = 0; j < 3; j++){
-                arbtncartas [j][i] = new Button();
-                arbtncartas [j][i].setPrefSize(180,160);
                 file = new File("src/main/java/com/example/topicos_v3/image/"+arImagenes[Ncarta]);
                 imgCarta = new Image(file.toURI().toString());
                 ImageView view = new ImageView(imgCarta);
                 view.setFitHeight(130);
                 view.setFitWidth(110);
                 view.setPreserveRatio(true);
-                arbtncartas[j][i].setGraphic(view);
-                gdpplantilla.add(arbtncartas[j][i],j,i);
+                arBtnCartas [j][i].setGraphic(view);
                 Ncarta++;
+            }
+        }
+    }
+
+    public void CartaAleatorio(){
+
+        int cantidad = 45, index = 0;
+
+        while(index < cantidad) {
+            int propuesto = (int)(Math.random()*cantidad);
+            boolean repetido = false;
+            while(!repetido) {
+                for(int i=0; i<index; i++) {
+                    if(propuesto == aleatorios[i]) {
+                        repetido = true;
+                        break;
+                    }
+                }
+                if(!repetido) {
+                    aleatorios[index] = propuesto;
+                    index++;
+                }
             }
         }
     }
