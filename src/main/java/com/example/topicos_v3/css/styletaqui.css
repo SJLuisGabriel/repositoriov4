@@ -1,9 +1,12 @@
 .button{
+    -fx-background-color: #6a9eda;
+    -fx-text-fill: #FFFFFF;
+    -fx-border-color: rgb(133, 193, 233);
     -fx-border-radius: 5;
     -fx-padding: 3 6 6 6;
 }
 
-#Btns {
+#btn1 {
     -fx-background-color: #008287;
     -fx-border-color: #FFFFFF;
     -fx-border-width: 2;
@@ -14,4 +17,6 @@
     -fx-background-radius: 10 10 10 10;
     -fx-border-radius: 10 10 10 10;
  }
+
+
 

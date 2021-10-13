@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -15,8 +16,10 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import java.io.File;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.Timer;
 
 public class Loteria extends Stage{
@@ -58,7 +61,6 @@ public class Loteria extends Stage{
         vBox = new VBox();
         hBox1 = new HBox();
         vBox2 = new VBox();
-
         btnAtras = new Button("< Plantilla Anterior");
         btnSiguiente = new Button("Plantilla Siguiente >");
         btnSeleccionar = new Button("Seleccionar Plantilla");
@@ -134,6 +136,10 @@ public class Loteria extends Stage{
             //CambioCartaDorso();
         });
 
+        btnSeleccionar.setId("Btns");
+        btnAtras.setId("Btns");
+        btnSiguiente.setId("Btns");
+
         view.setFitWidth(180);
         view.setFitHeight(200);
         view.setPreserveRatio(true);
@@ -151,6 +157,9 @@ public class Loteria extends Stage{
         vBox.setPadding(new Insets(10));
 
         escena = new Scene(vBox,800,535);
+
+        File filecss = new File("src/main/java/com/example/topicos_v3/css/style.css");
+        escena.getStylesheets().add(filecss.toURI().toString());
     }
 
     public void TimerCarta (){
@@ -182,14 +191,41 @@ public class Loteria extends Stage{
             }
         });
         timer.start();
+    }
 
+    public void playSound() {
+        try {
+            String archAudio = "";
+            if (contadorMazoIgual == 9) archAudio = "src/main/java/com/example/topicos_v3/Audios/nike_to_victory.wav";
+            else archAudio = "src/main/java/com/example/topicos_v3/Audios/tyr_still_not_funny.wav";
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(archAudio).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch(Exception ex) {
+            System.out.println("Error ");
+            ex.printStackTrace();
+        }
     }
 
     public void Parar (){
 
         if (termino) {
+            String resultado = "";
             timer.stop();
             System.out.println("Termino");
+            if ( contadorMazoIgual == 9) {
+                resultado = "LOTERIAA!!!!!!!! \nGanaste!!!!";
+                playSound();
+            }else {
+                resultado = "Buen Intendo Suerte Para La Proxima.... :(";
+                playSound();
+            }
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Resultado");
+            alert.setHeaderText(null);
+            alert.setContentText(resultado);
+            alert.showAndWait();
         }
     }
 
@@ -237,7 +273,6 @@ public class Loteria extends Stage{
                     }
                 }
             });
-
         }
     }
 
